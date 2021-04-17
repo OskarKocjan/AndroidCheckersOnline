@@ -1,0 +1,40 @@
+{
+  "project_info": {
+    "project_number": "267839244738",
+    "firebase_url": "https://androidcheckersonline-default-rtdb.firebaseio.com",
+    "project_id": "androidcheckersonline",
+    "storage_bucket": "androidcheckersonline.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:267839244738:android:fec74a06646c6f42b96e5b",
+        "android_client_info": {
+          "package_name": "com.example.androidcheckersonline"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "267839244738-2a1qh39588c1a00c04trvqoe0tpk7nqg.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDUpeETFLQ5_-UY3OUKFi6FIIBAvzxA24o"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "267839244738-2a1qh39588c1a00c04trvqoe0tpk7nqg.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

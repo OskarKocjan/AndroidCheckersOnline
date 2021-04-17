@@ -1,0 +1,10 @@
+<resources>
+    <string name="app_name">AndroidCheckersOnline</string>
+    <string name="textviewLogin">Login:</string>
+    <string name="textviewPassword">Password:</string>
+    <string name="login" />
+    <string name="loginBtnText">Log in!</string>
+    <string name="btnScoreBoardText">Score Board</string>
+    <string name="btnSelectRoomText">Select Room</string>
+    <string name="btnCreateRoomText">Create Room</string>
+</resources>
