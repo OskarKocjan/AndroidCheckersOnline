@@ -9,15 +9,26 @@
         android:roundIcon="@mipmap/ic_launcher_round"
         android:supportsRtl="true"
         android:theme="@style/Theme.AndroidCheckersOnline">
+
         <activity android:name=".MainActivity">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
-
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
-        <activity android:name=".ManuActivity"
-            android:parentActivityName=".MainActivity"/>
+
+        <activity
+            android:name=".MenuActivity"
+            android:parentActivityName=".MainActivity" />
+
+        <activity
+            android:name=".LeaderboardActivity"
+            android:parentActivityName=".MenuActivity"/>
+
+        <activity
+            android:name=".RoomListActivity"
+            android:parentActivityName=".MenuActivity" />
+
     </application>
 
 </manifest>

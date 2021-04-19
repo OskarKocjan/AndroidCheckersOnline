@@ -1,0 +1,76 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    tools:context=".MenuActivity">
+
+
+    <LinearLayout
+        android:id="@+id/horizontalLayout"
+        android:layout_width="match_parent"
+        android:layout_height="40dp"
+        android:orientation="horizontal">
+
+        <TextView
+            android:id="@+id/textViewPlayerName"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:layout_marginStart="5sp"
+            android:layout_marginLeft="5sp"
+            android:layout_marginTop="3sp"
+            android:layout_marginEnd="5sp"
+            android:layout_marginRight="5sp"
+            android:layout_marginBottom="3sp"
+            android:layout_weight="1"
+            android:gravity="start|center_vertical"
+            android:textColor="#673AB7"
+            android:textSize="30sp" />
+
+        <TextView
+            android:id="@+id/textViewRank"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:layout_marginStart="5sp"
+            android:layout_marginLeft="5sp"
+            android:layout_marginTop="3sp"
+            android:layout_marginEnd="5sp"
+            android:layout_marginRight="5sp"
+            android:layout_marginBottom="3sp"
+            android:layout_weight="1"
+            android:gravity="clip_vertical|end"
+            android:textColor="#673AB7"
+            android:textSize="30sp" />
+    </LinearLayout>
+
+    <LinearLayout
+        android:id="@+id/verticcalLayout"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:layout_below="@+id/horizontalLayout"
+        android:orientation="vertical">
+
+        <Button
+            android:id="@+id/buttonLeaderboard"
+            style="?android:attr/buttonBarButtonStyle"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:text="@string/btnScoreBoardText"
+            android:textColor="#673AB7"
+            android:textSize="30sp" />
+
+        <Button
+            android:id="@+id/buttonRoomList"
+            style="?android:attr/buttonBarButtonStyle"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:text="@string/btnSelectRoomText"
+            android:textSize="30sp" />
+
+    </LinearLayout>
+
+
+</RelativeLayout>

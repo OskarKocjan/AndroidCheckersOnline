@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    tools:context=".RoomListActivity">
+
+    <Button
+        android:id="@+id/buttonCreateRoom"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_alignParentBottom="true"
+        android:layout_centerHorizontal="true"
+        android:layout_marginStart="3sp"
+        android:layout_marginLeft="3sp"
+        android:layout_marginEnd="3sp"
+        android:layout_marginRight="3sp"
+        android:text="@string/create_room"
+        app:backgroundTint="#673AB7" />
+
+    <ListView
+        android:id="@+id/listViewRooms"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:layout_above="@id/buttonCreateRoom"
+        android:layout_alignParentTop="true" />
+
+
+</RelativeLayout>
