@@ -6,45 +6,80 @@ import android.os.Bundle
 import android.widget.Button
 import android.widget.EditText
 import android.widget.Toast
-import com.google.firebase.database.FirebaseDatabase
+import com.google.firebase.database.*
 
 class MainActivity : AppCompatActivity() {
-    internal lateinit var loginBtn: Button
-    internal lateinit var loginText: EditText
-    internal lateinit var passwordText: EditText
+
+    private lateinit var loginButton: Button
+    private lateinit var loginText: EditText
+    private lateinit var passwordText: EditText
+
+    private lateinit var database: FirebaseDatabase
+    private lateinit var playerRef: DatabaseReference
+
+    private lateinit var playerName: String
+    private lateinit var playerPassword: String
+    private var playerData: PlayerData? = null
 
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
-        loginBtn = findViewById(R.id.loginBtn)
+        loginButton = findViewById(R.id.buttonLogin)
         loginText = findViewById(R.id.editTextLogin)
         passwordText = findViewById(R.id.editTextPassword)
+        playerName = ""
+        playerPassword = ""
 
-        //hindus tested
-//        val ref = FirebaseDatabase.getInstance().getReference("heros")
-//
-//        val heroId = ref.push().key !!
-//
-//        val hero = "Elooooo"
-//
-//        ref.child(heroId).setValue(hero).addOnCompleteListener {
-//            Toast.makeText(applicationContext, "Hero saved successfully", Toast.LENGTH_LONG).show()
-//        }
+        database = FirebaseDatabase.getInstance()
 
+        loginButton.setOnClickListener {
+            playerName = loginText.text.toString()
+            playerPassword = passwordText.text.toString()
 
-
-
-
-
-
-
-        loginBtn.setOnClickListener { changeToMenu() }
+            if(!(playerName == "" || playerPassword == "")){
+                playerExistence()
+            } else {
+                Toast.makeText(applicationContext, "Please insert login and password", Toast.LENGTH_LONG).show()
+            }
+        }
     }
 
-    private fun changeToMenu() {
-        val intent: Intent
-        intent = Intent(this, ManuActivity::class.java).apply{}
+    private fun goToNextActivity(){
+        val intent = Intent(this, MenuActivity::class.java).apply{}
+        intent.putExtra("playerName", playerName)
         startActivity(intent)
+    }
+
+    private fun playerExistence(){
+        playerRef = database.getReference("players/$playerName")
+        playerRef.addValueEventListener(object: ValueEventListener{
+
+            override fun onDataChange(snapshot: DataSnapshot) {
+                loginButton.isEnabled = false
+                loginButton.text = "LOGGING IN"
+
+                if(snapshot.exists()){
+                    playerData = snapshot.getValue(PlayerData::class.java)
+
+                    if(playerPassword == playerData!!.password){
+                        goToNextActivity()
+                    } else {
+                        loginButton.text = R.string.loginBtnText.toString()
+                        loginButton.isEnabled = true
+                        Toast.makeText(applicationContext, "Bad password or login", Toast.LENGTH_LONG).show()
+                    }
+
+                } else {
+                    playerRef.setValue(PlayerData(playerPassword))
+                    goToNextActivity()
+                }
+            }
+
+            override fun onCancelled(error: DatabaseError) {
+                Toast.makeText(applicationContext, "Connection Error", Toast.LENGTH_LONG).show()
+            }
+
+        })
     }
 }
