@@ -5,8 +5,6 @@ import java.io.Serializable
 
 class Player(var color: String? = null) : Serializable {
 
-
-
     fun hasMoves(board: Board): Boolean {
         val pieces = board.getPieces(color!!)
         if (pieces.size > 0) {
@@ -26,7 +24,4 @@ class Player(var color: String? = null) : Serializable {
         return other.color == color
 
     }
-
-
-
 }

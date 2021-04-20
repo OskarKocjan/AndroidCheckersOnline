@@ -5,18 +5,17 @@ import java.io.Serializable
 import java.util.*
 import kotlin.math.abs
 
-public class Board(val BOARD_SIZE: Int = 8) :Serializable{
+public class Board(val BOARD_SIZE: Int = 8) {
 
-
-    private var lightPieces: ArrayList<Piece> = ArrayList()
+    var lightPieces: ArrayList<Piece> = ArrayList()
         get() = field
         set(value) {field = value}
 
-    private var darkPieces: ArrayList<Piece> = ArrayList<Piece>()
+    var darkPieces: ArrayList<Piece> = ArrayList<Piece>()
         get() = field
         set(value) {field = value}
 
-    private var board: Array<Array<Cell>> = Array(BOARD_SIZE) { row -> Array(BOARD_SIZE) { col -> Cell(row, col) } }
+    var board: Array<Array<Cell>> = Array(BOARD_SIZE) { row -> Array(BOARD_SIZE) { col -> Cell(row, col) } }
         get() = field
         set(value) {field = value}
 

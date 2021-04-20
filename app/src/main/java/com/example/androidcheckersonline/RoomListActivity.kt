@@ -38,13 +38,13 @@ class RoomListActivity : AppCompatActivity() {
         buttonCreateRoom.setOnClickListener{
             buttonCreateRoom.text = "CREATING ROOM"
             buttonCreateRoom.isEnabled = false
-            roomRef = database.getReference("rooms/$roomName/host")
+            roomRef = database.getReference("rooms/$roomName/player1")
             addRoomEventListener()
         }
 
         listViewRooms.setOnItemClickListener{ adapterView, view, position, id ->
             roomName = roomsList[position]
-            roomRef = database.getReference("rooms/$roomName/guest")
+            roomRef = database.getReference("rooms/$roomName/player2")
             addRoomEventListener()
         }
 
@@ -84,9 +84,9 @@ class RoomListActivity : AppCompatActivity() {
     }
 
     private fun goToNextActivity(){
-        TODO()
-        val intent = Intent(this, MenuActivity::class.java).apply{}
+        val intent = Intent(this, BoardActivity::class.java).apply{}
         intent.putExtra("roomName", roomName)
+        intent.putExtra("playerName", playerName)
         startActivity(intent)
     }
 

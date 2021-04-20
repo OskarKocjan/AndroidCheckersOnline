@@ -1,39 +1,64 @@
 package com.example.androidcheckersonline
 
+import android.content.Intent
 import android.graphics.Color
 import android.graphics.PorterDuff
 import android.os.Build
 import android.os.Bundle
 import android.os.Handler
+import android.view.MenuItem
 import android.view.View
 import android.widget.Button
 import android.widget.Toast
 import androidx.annotation.RequiresApi
 import androidx.appcompat.app.AppCompatActivity
+import com.google.firebase.database.*
 import com.uno.dbbc.checkers.Cell
 import java.util.*
 
 class BoardActivity : AppCompatActivity() {
+
     private lateinit var buttonsId: IntArray
     private lateinit var buttonBoard: Array<Array<Button?>>
     private lateinit var moves: ArrayList<Cell?>
     private lateinit var highlightedCells: ArrayList<Cell>
+
+    private lateinit var database: FirebaseDatabase
+    private lateinit var roomRef: DatabaseReference
+    private lateinit var stateRef: DatabaseReference
+    private lateinit var player1Ref: DatabaseReference
+
+    private lateinit var roomName: String
+    private lateinit var playerName: String
+    private lateinit var currentPlayerName: String
+    private var player1Temp: String = ""
+
     private lateinit var player1: Player
     private lateinit var player2: Player
     private lateinit var currentPlayer: Player
+
     private var computerMode: Boolean = false
     private var computerTurn: Boolean = false
     private var srcCellFixed: Boolean = false
     private var cellBoard = Board()
+
     private var srcCell: Cell? = null
     private var dstCell: Cell? = null
     private lateinit var delayHandler: Handler
+    internal lateinit var boardState: State
 
 
     @RequiresApi(Build.VERSION_CODES.LOLLIPOP)
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_board)
+        roomName = intent.getStringExtra("roomName")!!
+        playerName = intent.getStringExtra("playerName")!!
+
+        database = FirebaseDatabase.getInstance()
+        roomRef = database.getReference("rooms/$roomName")
+        player1Ref = database.getReference("rooms/$roomName/player1")
+        stateRef = database.getReference("rooms/$roomName/state")
 
         cellBoard.initialBoardSetup()
         srcCell = null
@@ -49,10 +74,8 @@ class BoardActivity : AppCompatActivity() {
                 R.id.button41, R.id.button43, R.id.button45, R.id.button47,
                 R.id.button48, R.id.button50, R.id.button52, R.id.button54,
                 R.id.button57, R.id.button59, R.id.button61, R.id.button63)
-        println(buttonsId)
 
         buttonBoard = Array<Array<Button?>>(8) { arrayOfNulls(8) }
-        println(buttonBoard[0][0])
 
 
         var index = 0
@@ -70,43 +93,46 @@ class BoardActivity : AppCompatActivity() {
         }
 
 
-
-
-
         updateBoard(buttonBoard, cellBoard)
         moves = ArrayList()
 
         chooseColorDialog()
-        choosePlayerDialog()
+        currentPlayerName = player1Temp
+        boardState = State(cellBoard, currentPlayerName)
 
+        stateRef.addValueEventListener(object: ValueEventListener{
+            override fun onDataChange(snapshot: DataSnapshot) {
+                if(!snapshot.exists()){
+                    stateRef.setValue(boardState)
+                }
+            }
 
+            override fun onCancelled(error: DatabaseError) {}
 
-    }
-
-
-    fun choosePlayerDialog() {
-
-        computerMode = false
-        updateTurnTracker()
-
+        })
     }
 
     /*
      * Creates dialog menu to let player 1 pick their color
      */
     fun chooseColorDialog() {
-        val choices = arrayOf<CharSequence>("Light", "Dark")
 
         player1 = Player(Piece.LIGHT)
         player2 = Player(Piece.DARK)
         currentPlayer = player2
+        player1Ref.addValueEventListener(object : ValueEventListener{
+            override fun onDataChange(snapshot: DataSnapshot) {
+                player1Temp = snapshot.getValue().toString()
+                if(player1Temp == playerName){
+                    currentPlayer = player1
+                } else {
+                    currentPlayer = player2
+                }
+            }
+            override fun onCancelled(error: DatabaseError) {}
+        })
         updateTurnTracker()
-
         }
-
-
-
-
 
 
     private val listener = View.OnClickListener { v ->
@@ -181,28 +207,22 @@ class BoardActivity : AppCompatActivity() {
 
 
     fun updateTurnTracker() {
-        if (currentPlayer != null) {
-            // Get all the pieces of the current player that can move & highlight them
-
-            // Get all the pieces of the current player that can move & highlight them
-            val currentPlayerPieces = cellBoard.getPieces(currentPlayer.color!!)
-            var moves: ArrayList<Cell?>
-            if (currentPlayerPieces != null) {
-                for (piece in currentPlayerPieces) {
-                    moves = cellBoard.possibleMoves(piece)
-                    if (!moves.isEmpty()) {
-                        if (piece.color == Piece.DARK && piece.isKing) {
-                            buttonBoard[piece.placedCell!!.x][piece.placedCell!!.y]!!.setBackgroundResource(R.drawable.dark_king_highlighted)
-                        } else if (piece.color == Piece.DARK) {
-                            buttonBoard[piece.placedCell!!.x][piece.placedCell!!.y]!!.setBackgroundResource(R.drawable.dark_piece_highlighted)
-                        } else if (piece.color == Piece.LIGHT && piece.isKing) {
-                            buttonBoard[piece.placedCell!!.x][piece.placedCell!!.y]!!.setBackgroundResource(R.drawable.light_king_highlighted)
-                        } else if (piece.color == Piece.LIGHT) {
-                            buttonBoard[piece.placedCell!!.x][piece.placedCell!!.y]!!.setBackgroundResource(R.drawable.light_piece_highlighted)
-                        }
-                        highlightedCells.add(piece.placedCell!!)
-                    }
+        // Get all the pieces of the current player that can move & highlight them
+        val currentPlayerPieces = cellBoard.getPieces(currentPlayer.color!!)
+        var moves: ArrayList<Cell?>
+        for (piece in currentPlayerPieces) {
+            moves = cellBoard.possibleMoves(piece)
+            if (!moves.isEmpty()) {
+                if (piece.color == Piece.DARK && piece.isKing) {
+                    buttonBoard[piece.placedCell!!.x][piece.placedCell!!.y]!!.setBackgroundResource(R.drawable.dark_king_highlighted)
+                } else if (piece.color == Piece.DARK) {
+                    buttonBoard[piece.placedCell!!.x][piece.placedCell!!.y]!!.setBackgroundResource(R.drawable.dark_piece_highlighted)
+                } else if (piece.color == Piece.LIGHT && piece.isKing) {
+                    buttonBoard[piece.placedCell!!.x][piece.placedCell!!.y]!!.setBackgroundResource(R.drawable.light_king_highlighted)
+                } else if (piece.color == Piece.LIGHT) {
+                    buttonBoard[piece.placedCell!!.x][piece.placedCell!!.y]!!.setBackgroundResource(R.drawable.light_piece_highlighted)
                 }
+                highlightedCells.add(piece.placedCell!!)
             }
         }
     }
@@ -246,7 +266,7 @@ class BoardActivity : AppCompatActivity() {
         } else {
             "Player 1"
         }
-
+        TODO()
 
     }
 
@@ -348,16 +368,18 @@ class BoardActivity : AppCompatActivity() {
     fun changeTurn() {
         // If both players have moves, we can switch turns
         if (player1.hasMoves(cellBoard) && player2.hasMoves(cellBoard)) {
-            if (currentPlayer.equals(player1)) {
-                currentPlayer = player2
+//            if (currentPlayer.equals(player1)) {
+//                currentPlayer = player1
+//                updateTurnTracker()
+//            } else {
+//                currentPlayer = player1
+//                if (computerMode) {
+//                    computerTurn = false
+//                }
+//                updateTurnTracker()
+//            }
                 updateTurnTracker()
-            } else {
-                currentPlayer = player1
-                if (computerMode) {
-                    computerTurn = false
-                }
-                updateTurnTracker()
-            }
+
         } else {
             gameOverDialog()
         }
@@ -390,8 +412,16 @@ class BoardActivity : AppCompatActivity() {
         }
     }
 
-
-
-
-
+    override fun onOptionsItemSelected(item: MenuItem): Boolean {
+        when (item.itemId) {
+            android.R.id.home -> {
+                val intent = Intent()
+                intent.putExtra("playerName", playerName)
+                setResult(RESULT_OK, intent)
+                finish()
+                return true
+            }
+        }
+        return super.onOptionsItemSelected(item)
+    }
 }
