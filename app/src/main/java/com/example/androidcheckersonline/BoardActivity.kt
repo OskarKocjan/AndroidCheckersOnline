@@ -101,16 +101,16 @@ class BoardActivity : AppCompatActivity() {
         currentPlayerName = player1Temp
         boardState = State(cellBoard, currentPlayerName)
 
-//        stateRef.addValueEventListener(object: ValueEventListener{
-//            override fun onDataChange(snapshot: DataSnapshot) {
-//                if(!snapshot.exists()){
-//                    stateRef.setValue(boardState)
-//                }
-//            }
-//
-//            override fun onCancelled(error: DatabaseError) {}
-//
-//        })
+        stateRef.addValueEventListener(object: ValueEventListener{
+            override fun onDataChange(snapshot: DataSnapshot) {
+                if(!snapshot.exists()){
+                    stateRef.setValue(boardState)
+                }
+            }
+
+            override fun onCancelled(error: DatabaseError) {}
+
+        })
     }
 
     /*

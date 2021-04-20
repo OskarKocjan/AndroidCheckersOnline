@@ -11,8 +11,8 @@
         android:theme="@style/Theme.AndroidCheckersOnline">
 
         <activity
-            android:name=".BoardActivity"
-            android:parentActivityName=".MenuActivity"/>
+            android:name=".BoardActivity"/>
+
         <activity android:name=".MainActivity">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
