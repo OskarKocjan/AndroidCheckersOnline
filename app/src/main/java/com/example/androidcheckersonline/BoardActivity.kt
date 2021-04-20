@@ -100,16 +100,16 @@ class BoardActivity : AppCompatActivity() {
         currentPlayerName = player1Temp
         boardState = State(cellBoard, currentPlayerName)
 
-        stateRef.addValueEventListener(object: ValueEventListener{
-            override fun onDataChange(snapshot: DataSnapshot) {
-                if(!snapshot.exists()){
-                    stateRef.setValue(boardState)
-                }
-            }
-
-            override fun onCancelled(error: DatabaseError) {}
-
-        })
+//        stateRef.addValueEventListener(object: ValueEventListener{
+//            override fun onDataChange(snapshot: DataSnapshot) {
+//                if(!snapshot.exists()){
+//                    stateRef.setValue(boardState)
+//                }
+//            }
+//
+//            override fun onCancelled(error: DatabaseError) {}
+//
+//        })
     }
 
     /*
@@ -122,16 +122,18 @@ class BoardActivity : AppCompatActivity() {
         currentPlayer = player2
         player1Ref.addValueEventListener(object : ValueEventListener{
             override fun onDataChange(snapshot: DataSnapshot) {
-                player1Temp = snapshot.getValue().toString()
-                if(player1Temp == playerName){
-                    currentPlayer = player1
+                player1Temp = snapshot.value.toString()
+                 if(player1Temp == playerName){
+                     currentPlayer = player1
+                     updateTurnTracker()
+
                 } else {
-                    currentPlayer = player2
+                     currentPlayer = player2
+                     updateTurnTracker()
                 }
             }
             override fun onCancelled(error: DatabaseError) {}
         })
-        updateTurnTracker()
         }
 
 
@@ -208,7 +210,10 @@ class BoardActivity : AppCompatActivity() {
 
     fun updateTurnTracker() {
         // Get all the pieces of the current player that can move & highlight them
+
         val currentPlayerPieces = cellBoard.getPieces(currentPlayer.color!!)
+        println("cyyyyyyce")
+        println(currentPlayer.color)
         var moves: ArrayList<Cell?>
         for (piece in currentPlayerPieces) {
             moves = cellBoard.possibleMoves(piece)
@@ -366,6 +371,16 @@ class BoardActivity : AppCompatActivity() {
     }
 
     fun changeTurn() {
+
+        //wysyłamy naszego chessboarda do bazy danych
+        //sprawdzamy czy baza danych zmieniła się czekąjąc przy tym
+        //jeżeli baza danych się zmieniła to updateTurnTracker()
+
+
+
+
+
+
         // If both players have moves, we can switch turns
         if (player1.hasMoves(cellBoard) && player2.hasMoves(cellBoard)) {
 //            if (currentPlayer.equals(player1)) {
