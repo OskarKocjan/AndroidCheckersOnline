@@ -41,6 +41,7 @@ class BoardActivity : AppCompatActivity() {
     private var computerTurn: Boolean = false
     private var srcCellFixed: Boolean = false
     private var cellBoard = Board()
+    private var cellBoardCopy = Board()
 
     private var srcCell: Cell? = null
     private var dstCell: Cell? = null
@@ -141,12 +142,16 @@ class BoardActivity : AppCompatActivity() {
         val tag = v.tag as Int
         val xCord = tag / 10
         val yCord = tag % 10
+
         if (!computerTurn) {
             playerTurn(xCord, yCord)
         }
     }
 
+
     fun playerTurn(xCord: Int, yCord: Int) {
+
+
 
         // If both players have pieces, game IS RUNNING
         if (player1.hasMoves(cellBoard) && player1.hasMoves(cellBoard)) {
@@ -211,6 +216,8 @@ class BoardActivity : AppCompatActivity() {
     fun updateTurnTracker() {
         // Get all the pieces of the current player that can move & highlight them
 
+
+
         val currentPlayerPieces = cellBoard.getPieces(currentPlayer.color!!)
         println("cyyyyyyce")
         println(currentPlayer.color)
@@ -230,6 +237,9 @@ class BoardActivity : AppCompatActivity() {
                 highlightedCells.add(piece.placedCell!!)
             }
         }
+
+
+
     }
 
 
@@ -277,7 +287,12 @@ class BoardActivity : AppCompatActivity() {
 
 
     fun updatePieces(xCord: Int, yCord: Int) {
-
+//
+//        cellBoardCopy = cellBoard
+//        print("dupskoooooooooo")
+//        if(cellBoardCopy == cellBoard){
+//            println("Jasiuuuuuuuuuuuuuuuuuu")
+//        }
         // For all of the possible moves colored in on the cellBoard, after a piece moves we want to remove them
         var possMoves: Cell
         for (i in moves.indices) {
@@ -370,6 +385,10 @@ class BoardActivity : AppCompatActivity() {
         }
     }
 
+
+
+
+
     fun changeTurn() {
 
         //wysyłamy naszego chessboarda do bazy danych
@@ -377,6 +396,9 @@ class BoardActivity : AppCompatActivity() {
         //jeżeli baza danych się zmieniła to updateTurnTracker()
 
 
+        if(cellBoardCopy == cellBoard){
+            println("kurwaaaaaaaaaaaaaa")
+        }
 
 
 
