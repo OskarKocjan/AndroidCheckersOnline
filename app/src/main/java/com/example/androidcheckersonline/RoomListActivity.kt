@@ -53,11 +53,12 @@ class RoomListActivity : AppCompatActivity() {
                 roomsList = mutableListOf()
                 val rooms = snapshot.children
                 for(tempRoom in rooms){
-                    roomsList.add(tempRoom.key.toString())
-
-                    val adapter = ArrayAdapter<String>(applicationContext, android.R.layout.simple_list_item_1, roomsList)
-                    listViewRooms.adapter = adapter
+                    if(!tempRoom.hasChild("player2")) {
+                        roomsList.add(tempRoom.key.toString())
+                    }
                 }
+                val adapter = ArrayAdapter<String>(applicationContext, android.R.layout.simple_list_item_1, roomsList)
+                listViewRooms.adapter = adapter
             }
 
             override fun onCancelled(error: DatabaseError) {}

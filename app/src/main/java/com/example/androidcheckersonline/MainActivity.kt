@@ -1,5 +1,6 @@
 package com.example.androidcheckersonline
 
+import android.annotation.SuppressLint
 import android.content.Intent
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
@@ -55,6 +56,7 @@ class MainActivity : AppCompatActivity() {
         playerRef = database.getReference("players/$playerName")
         playerRef.addValueEventListener(object: ValueEventListener{
 
+            @SuppressLint("SetTextI18n")
             override fun onDataChange(snapshot: DataSnapshot) {
                 loginButton.isEnabled = false
                 loginButton.text = "LOGGING IN"
@@ -65,7 +67,7 @@ class MainActivity : AppCompatActivity() {
                     if(playerPassword == playerData!!.password){
                         goToNextActivity()
                     } else {
-                        loginButton.text = R.string.loginBtnText.toString()
+                        loginButton.text = getString(R.string.loginBtnText)
                         loginButton.isEnabled = true
                         Toast.makeText(applicationContext, "Bad password or login", Toast.LENGTH_LONG).show()
                     }
