@@ -22,11 +22,13 @@ class BoardActivity : AppCompatActivity() {
     private lateinit var buttonBoard: Array<Array<Button?>>
     private lateinit var moves: ArrayList<Cell?>
     private lateinit var highlightedCells: ArrayList<Cell>
+    private lateinit var buttonResign: Button
 
     private lateinit var database: FirebaseDatabase
     private lateinit var roomRef: DatabaseReference
     private lateinit var stateRef: DatabaseReference
     private lateinit var player1Ref: DatabaseReference
+    private lateinit var valueListener: ValueEventListener
 
     private lateinit var roomName: String
     private lateinit var playerName: String
@@ -52,6 +54,9 @@ class BoardActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_board)
+
+        buttonResign = findViewById(R.id.buttonResign)
+
         roomName = intent.getStringExtra("roomName")!!
         playerName = intent.getStringExtra("playerName")!!
 
@@ -100,16 +105,20 @@ class BoardActivity : AppCompatActivity() {
         currentPlayerName = player1Temp
         boardState = State(cellBoard, currentPlayerName)
 
-        stateRef.addValueEventListener(object: ValueEventListener{
-            override fun onDataChange(snapshot: DataSnapshot) {
-                if(!snapshot.exists()){
-                    stateRef.setValue(boardState)
-                }
-            }
+//        stateRef.addValueEventListener(object: ValueEventListener{
+//            override fun onDataChange(snapshot: DataSnapshot) {
+//                if(!snapshot.exists()){
+//                    stateRef.setValue(boardState)
+//                }
+//            }
+//
+//            override fun onCancelled(error: DatabaseError) {}
+//
+//        })
 
-            override fun onCancelled(error: DatabaseError) {}
-
-        })
+        buttonResign.setOnClickListener{
+            roomRef.removeValue()
+        }
     }
 
     /*
@@ -120,16 +129,19 @@ class BoardActivity : AppCompatActivity() {
         player1 = Player(Piece.LIGHT)
         player2 = Player(Piece.DARK)
         currentPlayer = player2
-        player1Ref.addValueEventListener(object : ValueEventListener{
+        valueListener = player1Ref.addValueEventListener(object: ValueEventListener{
             override fun onDataChange(snapshot: DataSnapshot) {
-                player1Temp = snapshot.value.toString()
-                 if(player1Temp == playerName){
-                     currentPlayer = player1
-                     updateTurnTracker()
-
+                if (snapshot.value == null){
+                    goToPreviousActivity()
                 } else {
-                     currentPlayer = player2
-                     updateTurnTracker()
+                    player1Temp = snapshot.value.toString()
+                    if(player1Temp == playerName){
+                        currentPlayer = player1
+                        updateTurnTracker()
+                    } else {
+                        currentPlayer = player2
+                        updateTurnTracker()
+                    }
                 }
             }
             override fun onCancelled(error: DatabaseError) {}
@@ -427,16 +439,9 @@ class BoardActivity : AppCompatActivity() {
         }
     }
 
-    override fun onOptionsItemSelected(item: MenuItem): Boolean {
-        when (item.itemId) {
-            android.R.id.home -> {
-                val intent = Intent()
-                intent.putExtra("playerName", playerName)
-                setResult(RESULT_OK, intent)
-                finish()
-                return true
-            }
-        }
-        return super.onOptionsItemSelected(item)
+    fun goToPreviousActivity(){
+        val intent = Intent(this, MenuActivity::class.java).apply{}
+        intent.putExtra("playerName", playerName)
+        startActivity(intent)
     }
 }

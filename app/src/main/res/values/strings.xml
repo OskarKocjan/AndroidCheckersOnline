@@ -6,4 +6,5 @@
     <string name="btnScoreBoardText">LEADERBOARD</string>
     <string name="btnSelectRoomText">ROOM LIST</string>
     <string name="create_room">CREATE ROOM</string>
+    <string name="resign">RESIGN</string>
 </resources>
