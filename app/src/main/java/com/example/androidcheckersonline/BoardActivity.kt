@@ -14,7 +14,12 @@ import androidx.annotation.RequiresApi
 import androidx.appcompat.app.AppCompatActivity
 import com.google.firebase.database.*
 import com.uno.dbbc.checkers.Cell
+import java.io.ByteArrayInputStream
+import java.io.ByteArrayOutputStream
+import java.io.ObjectInputStream
+import java.io.ObjectOutputStream
 import java.util.*
+import kotlin.collections.ArrayList
 
 class BoardActivity : AppCompatActivity() {
 
@@ -38,6 +43,7 @@ class BoardActivity : AppCompatActivity() {
     private lateinit var player1: Player
     private lateinit var player2: Player
     private lateinit var currentPlayer: Player
+    private var i:Int = 0
 
     private var computerMode: Boolean = false
     private var computerTurn: Boolean = false
@@ -99,8 +105,20 @@ class BoardActivity : AppCompatActivity() {
         }
 
 
+
+
+
         updateBoard(buttonBoard, cellBoard)
         moves = ArrayList()
+
+
+        cellBoardCopy = cellBoard.clone()
+
+
+        if(cellBoardCopy.changes == cellBoard.changes){
+            println("Jasiuuuuuuuuuuuuuuuuuu")
+        }
+
 
         chooseColorDialog()
         currentPlayerName = player1Temp
@@ -150,10 +168,27 @@ class BoardActivity : AppCompatActivity() {
         }
 
 
+    fun <T> T.clone() : T
+    {
+        val byteArrayOutputStream= ByteArrayOutputStream()
+        ObjectOutputStream(byteArrayOutputStream).use { outputStream ->
+            outputStream.writeObject(this)
+        }
+
+        val bytes=byteArrayOutputStream.toByteArray()
+
+        ObjectInputStream(ByteArrayInputStream(bytes)).use { inputStream ->
+            return inputStream.readObject() as T
+        }
+    }
+
+
     private val listener = View.OnClickListener { v ->
         val tag = v.tag as Int
         val xCord = tag / 10
         val yCord = tag % 10
+
+        cellBoardCopy = cellBoard.clone()
 
         if (!computerTurn) {
             playerTurn(xCord, yCord)
@@ -231,8 +266,6 @@ class BoardActivity : AppCompatActivity() {
 
 
         val currentPlayerPieces = cellBoard.getPieces(currentPlayer.color!!)
-        println("cyyyyyyce")
-        println(currentPlayer.color)
         var moves: ArrayList<Cell?>
         for (piece in currentPlayerPieces) {
             moves = cellBoard.possibleMoves(piece)
@@ -299,12 +332,8 @@ class BoardActivity : AppCompatActivity() {
 
 
     fun updatePieces(xCord: Int, yCord: Int) {
-//
-//        cellBoardCopy = cellBoard
-//        print("dupskoooooooooo")
-//        if(cellBoardCopy == cellBoard){
-//            println("Jasiuuuuuuuuuuuuuuuuuu")
-//        }
+
+
         // For all of the possible moves colored in on the cellBoard, after a piece moves we want to remove them
         var possMoves: Cell
         for (i in moves.indices) {
@@ -338,13 +367,15 @@ class BoardActivity : AppCompatActivity() {
      * @param int yCordDst - The new y-coordinate of a piece after it jumped an opponent piece
      * @param Cell pieceCaptured - The piece that was captured
      */
-    fun updatePieces(changedCells: ArrayList<Cell?>) {
+    fun updatePieces(changedCells: ArrayList<Cell?>, variant: Int = 0) {
 
         // For all of the possible moves colored in on the cellBoard, after a piece jumps we want to remove them
         var possMoves: Cell
-        for (i in moves.indices) {
-            possMoves = moves[i]!!
-            buttonBoard[possMoves.x][possMoves.y]!!.setBackgroundResource(R.drawable.blank_square) // color possible moves blank
+        if(variant == 0) {
+            for (i in moves.indices) {
+                possMoves = moves[i]!!
+                buttonBoard[possMoves.x][possMoves.y]!!.setBackgroundResource(R.drawable.blank_square) // color possible moves blank
+            }
         }
         for (cell in changedCells) {
             if (!cell!!.containsPiece()) {
@@ -367,6 +398,7 @@ class BoardActivity : AppCompatActivity() {
 
 
     fun onSecondClick(givenSrcCell: Cell, givenDstCell: Cell) {
+
         unHighlightPieces()
         val captureMove = cellBoard.isCaptureMove(givenSrcCell, givenDstCell)
         val changedCells = cellBoard.movePiece(givenSrcCell.coords, givenDstCell.coords)!! // moves piece, store captured piece into array list
@@ -379,6 +411,7 @@ class BoardActivity : AppCompatActivity() {
                 srcCell = null
                 dstCell = null
                 srcCellFixed = false
+                cellBoard.changes += 1
                 changeTurn()
             } else {
                 srcCell = dstCell
@@ -393,10 +426,13 @@ class BoardActivity : AppCompatActivity() {
             srcCell = null
             dstCell = null
             srcCellFixed = false
+            cellBoard.changes += 1
             changeTurn()
         }
     }
 
+        //var diff = compareBoardCopies(cellBoard, cellBoardCopy)
+        var boardToData = compareBoardCopies(cellBoard, cellBoardCopy)
 
 
 
@@ -405,13 +441,43 @@ class BoardActivity : AppCompatActivity() {
 
         //wysyłamy naszego chessboarda do bazy danych
         //sprawdzamy czy baza danych zmieniła się czekąjąc przy tym
-        //jeżeli baza danych się zmieniła to updateTurnTracker()
 
 
-        if(cellBoardCopy == cellBoard){
-            println("kurwaaaaaaaaaaaaaa")
-        }
 
+        //wczytaj boardtoData do bazy danych
+
+
+
+        //nasłuchuj czy baza danych się zmieniła
+        //jeżeli nie to nieskończona pętla
+        //jeżeli tak to puść dalej program i pobierz dane z bazy danych
+
+
+        //z wczytanych danych zrobić liste obiektów klasy CellPieceToDataBase
+        //wjebać to do funkcji fromDataBaseToGame
+
+
+
+
+//        var tests123 = intArrayOf(1,2,3)
+//        var test = ArrayList<CellPieceToDataBase>()
+//
+//        if(tests123[i] == 1){
+//            test.add(CellPieceToDataBase(5, 1))
+//            test.add(CellPieceToDataBase(4,2, "Dark", false, true))
+//        }
+//        else if(tests123[i]  == 2){
+//            test.add(CellPieceToDataBase(5, 7))
+//            test.add(CellPieceToDataBase(4,6, "Dark", false, true))
+//        }
+//        else{
+//            test.add(CellPieceToDataBase(5, 5))
+//            test.add(CellPieceToDataBase(4,4, "Dark", false, true))
+//
+//        }
+//        i++
+//
+//        fromDataBaseToGame(test)
 
 
 
@@ -433,6 +499,72 @@ class BoardActivity : AppCompatActivity() {
             gameOverDialog()
         }
     }
+
+    private fun compareBoardCopies(cellBoard: Board, cellBoardCopy: Board): ArrayList<CellPieceToDataBase> {
+        val boardBefore = cellBoardCopy.board
+        val boardAfter = cellBoard.board
+        var listBoardToDataBase = ArrayList<CellPieceToDataBase>()
+
+
+
+        for (i in 0..7) {
+            for (j in 0..7) {
+                if ((i + j) % 2 == 0 && boardBefore[i][j].toString() != boardAfter[i][j].toString()) {
+                    if(boardAfter[i][j].placedPiece != null){
+                        listBoardToDataBase.add(CellPieceToDataBase(boardAfter[i][j].x, boardAfter[i][j].y, boardAfter[i][j].placedPiece!!.color, boardAfter[i][j].placedPiece!!.isKing, true))
+                    }
+                    else{
+                        listBoardToDataBase.add(CellPieceToDataBase(boardAfter[i][j].x, boardAfter[i][j].y))
+                    }
+                }
+            }
+        }
+
+
+
+        return listBoardToDataBase
+    }
+
+    private fun fromDataBaseToGame(cellBoardFromDataBase: ArrayList<CellPieceToDataBase>){
+
+        var  changedCells = ArrayList<Cell?>()
+
+        for(CellPiece in cellBoardFromDataBase){
+            var tmpCell: Cell
+
+
+            if(CellPiece.havePiece){
+                var tmpPiece = Piece(CellPiece.color, CellPiece.isKing)
+                tmpCell = Cell(CellPiece.x, CellPiece.y)
+                tmpCell.placePiece(tmpPiece)
+
+                if(CellPiece.color == Piece.DARK){
+                    cellBoard.darkPieces.add(tmpPiece)
+                }
+                else{
+                    cellBoard.lightPieces.add(tmpPiece)
+                }
+
+            }
+            else{
+                tmpCell = Cell(CellPiece.x, CellPiece.y)
+
+                cellBoard.removePiece(cellBoard.board[tmpCell.x][tmpCell.y].placedPiece)
+
+            }
+
+
+            changedCells.add(tmpCell)
+            cellBoard.board[tmpCell.x][tmpCell.y] = tmpCell
+
+        }
+
+        updatePieces(changedCells, 1)
+
+
+    }
+
+
 
 
     fun updateBoard(buttonIndexes: Array<Array<Button?>>, board: Board) {

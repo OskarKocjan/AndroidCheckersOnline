@@ -5,9 +5,9 @@ import java.io.Serializable
 import java.util.*
 import kotlin.math.abs
 
-public class Board(val BOARD_SIZE: Int = 8) {
+public class Board(val BOARD_SIZE: Int = 8, var changes: Int = 0):Serializable {
 
-    var lightPieces: ArrayList<Piece> = ArrayList()
+    var lightPieces: ArrayList<Piece> = ArrayList<Piece>()
         get() = field
         set(value) {field = value}
 
@@ -33,6 +33,7 @@ public class Board(val BOARD_SIZE: Int = 8) {
     //	 5  _  D  _  D  _  D  _  D
     //	 6  D  _  D  _  D  _  D  _
     //	 7  _  D  _  D  _  D  _  D
+
 
 
 
