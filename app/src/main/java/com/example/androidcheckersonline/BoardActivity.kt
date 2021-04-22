@@ -6,7 +6,6 @@ import android.graphics.PorterDuff
 import android.os.Build
 import android.os.Bundle
 import android.os.Handler
-import android.view.MenuItem
 import android.view.View
 import android.widget.Button
 import android.widget.Toast
@@ -18,7 +17,6 @@ import java.io.ByteArrayInputStream
 import java.io.ByteArrayOutputStream
 import java.io.ObjectInputStream
 import java.io.ObjectOutputStream
-import java.util.*
 import kotlin.collections.ArrayList
 
 class BoardActivity : AppCompatActivity() {
@@ -28,12 +26,19 @@ class BoardActivity : AppCompatActivity() {
     private lateinit var moves: ArrayList<Cell?>
     private lateinit var highlightedCells: ArrayList<Cell>
     private lateinit var buttonResign: Button
+    private lateinit var boardToDatabase: ArrayList<CellPieceToDataBase>
+    private lateinit var boardFromDatabase: ArrayList<CellPieceToDataBase>
+//    private lateinit var cellArray: MutableList<DatabaseReference>
 
     private lateinit var database: FirebaseDatabase
     private lateinit var roomRef: DatabaseReference
     private lateinit var stateRef: DatabaseReference
     private lateinit var player1Ref: DatabaseReference
     private lateinit var valueListener: ValueEventListener
+//    private lateinit var cell1Ref: DatabaseReference
+//    private lateinit var cell2Ref: DatabaseReference
+//    private lateinit var cell3Ref: DatabaseReference
+
 
     private lateinit var roomName: String
     private lateinit var playerName: String
@@ -43,10 +48,9 @@ class BoardActivity : AppCompatActivity() {
     private lateinit var player1: Player
     private lateinit var player2: Player
     private lateinit var currentPlayer: Player
-    private var i:Int = 0
 
     private var computerMode: Boolean = false
-    private var computerTurn: Boolean = false
+    private var otherPlayerTurn: Boolean = false
     private var srcCellFixed: Boolean = false
     private var cellBoard = Board()
     private var cellBoardCopy = Board()
@@ -71,6 +75,13 @@ class BoardActivity : AppCompatActivity() {
         roomRef = database.getReference("rooms/$roomName")
         player1Ref = database.getReference("rooms/$roomName/player1")
         stateRef = database.getReference("rooms/$roomName/state")
+//        cell1Ref = database.getReference("rooms/$roomName/state/cell1")
+//        cell2Ref = database.getReference("rooms/$roomName/state/cell2")
+//        cell3Ref = database.getReference("rooms/$roomName/state/cell3")
+//        cellArray = MutableList(3)
+//        cellArray.add(cell1Ref)
+//        cellArray.add(cell2Ref)
+//        cellArray.add(cell3Ref)
 
         cellBoard.initialBoardSetup()
         srcCell = null
@@ -112,7 +123,7 @@ class BoardActivity : AppCompatActivity() {
         moves = ArrayList()
 
 
-        cellBoardCopy = cellBoard.clone()
+        cellBoardCopy = cellBoard.cloone()
 
 
         if(cellBoardCopy.changes == cellBoard.changes){
@@ -123,17 +134,6 @@ class BoardActivity : AppCompatActivity() {
         chooseColorDialog()
         currentPlayerName = player1Temp
         boardState = State(cellBoard, currentPlayerName)
-
-//        stateRef.addValueEventListener(object: ValueEventListener{
-//            override fun onDataChange(snapshot: DataSnapshot) {
-//                if(!snapshot.exists()){
-//                    stateRef.setValue(boardState)
-//                }
-//            }
-//
-//            override fun onCancelled(error: DatabaseError) {}
-//
-//        })
 
         buttonResign.setOnClickListener{
             roomRef.removeValue()
@@ -159,7 +159,7 @@ class BoardActivity : AppCompatActivity() {
                         updateTurnTracker()
                     } else {
                         currentPlayer = player2
-                        updateTurnTracker()
+                        changeTurn(false)
                     }
                 }
             }
@@ -168,7 +168,7 @@ class BoardActivity : AppCompatActivity() {
         }
 
 
-    fun <T> T.clone() : T
+    fun <T> T.cloone() : T
     {
         val byteArrayOutputStream= ByteArrayOutputStream()
         ObjectOutputStream(byteArrayOutputStream).use { outputStream ->
@@ -188,9 +188,9 @@ class BoardActivity : AppCompatActivity() {
         val xCord = tag / 10
         val yCord = tag % 10
 
-        cellBoardCopy = cellBoard.clone()
+        cellBoardCopy = cellBoard.cloone()
 
-        if (!computerTurn) {
+        if (!otherPlayerTurn) {
             playerTurn(xCord, yCord)
         }
     }
@@ -412,7 +412,7 @@ class BoardActivity : AppCompatActivity() {
                 dstCell = null
                 srcCellFixed = false
                 cellBoard.changes += 1
-                changeTurn()
+                changeTurn(true)
             } else {
                 srcCell = dstCell
                 srcCellFixed = true
@@ -427,77 +427,48 @@ class BoardActivity : AppCompatActivity() {
             dstCell = null
             srcCellFixed = false
             cellBoard.changes += 1
-            changeTurn()
+            changeTurn(true)
         }
     }
 
-        //var diff = compareBoardCopies(cellBoard, cellBoardCopy)
-        var boardToData = compareBoardCopies(cellBoard, cellBoardCopy)
 
 
 
+    fun changeTurn(boolek: Boolean){
 
-    fun changeTurn() {
+        boardToDatabase = compareBoardCopies(cellBoard, cellBoardCopy)
 
-        //wysyłamy naszego chessboarda do bazy danych
-        //sprawdzamy czy baza danych zmieniła się czekąjąc przy tym
+        if(boolek){
 
-
-
-        //wczytaj boardtoData do bazy danych
-
-
-
-        //nasłuchuj czy baza danych się zmieniła
-        //jeżeli nie to nieskończona pętla
-        //jeżeli tak to puść dalej program i pobierz dane z bazy danych
-
-
-        //z wczytanych danych zrobić liste obiektów klasy CellPieceToDataBase
-        //wjebać to do funkcji fromDataBaseToGame
-
-
-
-
-//        var tests123 = intArrayOf(1,2,3)
-//        var test = ArrayList<CellPieceToDataBase>()
-//
-//        if(tests123[i] == 1){
-//            test.add(CellPieceToDataBase(5, 1))
-//            test.add(CellPieceToDataBase(4,2, "Dark", false, true))
-//        }
-//        else if(tests123[i]  == 2){
-//            test.add(CellPieceToDataBase(5, 7))
-//            test.add(CellPieceToDataBase(4,6, "Dark", false, true))
-//        }
-//        else{
-//            test.add(CellPieceToDataBase(5, 5))
-//            test.add(CellPieceToDataBase(4,4, "Dark", false, true))
-//
-//        }
-//        i++
-//
-//        fromDataBaseToGame(test)
-
-
-
-        // If both players have moves, we can switch turns
-        if (player1.hasMoves(cellBoard) && player2.hasMoves(cellBoard)) {
-//            if (currentPlayer.equals(player1)) {
-//                currentPlayer = player1
-//                updateTurnTracker()
-//            } else {
-//                currentPlayer = player1
-//                if (computerMode) {
-//                    computerTurn = false
-//                }
-//                updateTurnTracker()
-//            }
-                updateTurnTracker()
-
-        } else {
-            gameOverDialog()
+            stateRef.removeValue()
+            for( cell in boardToDatabase){
+                stateRef.push().setValue(cell)
+            }
         }
+        otherPlayerTurn = true
+        stateRef.addValueEventListener(object: ValueEventListener{
+            override fun onDataChange(snapshot: DataSnapshot) {
+                if(snapshot.exists()){
+                    boardFromDatabase = ArrayList<CellPieceToDataBase>()
+                    val children = snapshot.children
+                    for( child in children){
+                        boardFromDatabase.add(child.getValue(CellPieceToDataBase::class.java)!!)
+                    }
+                    if (!dataBoardEquals(boardToDatabase, boardFromDatabase)){
+                        fromDataBaseToGame(boardFromDatabase)
+                        if (player1.hasMoves(cellBoard) && player2.hasMoves(cellBoard)) {
+                            otherPlayerTurn = false
+                            updateTurnTracker()
+                        } else {
+                            gameOverDialog()
+                        }
+                    }
+                }
+            }
+            override fun onCancelled(error: DatabaseError) {
+                TODO("Not yet implemented")
+            }
+        })
     }
 
     private fun compareBoardCopies(cellBoard: Board, cellBoardCopy: Board): ArrayList<CellPieceToDataBase> {
@@ -520,16 +491,14 @@ class BoardActivity : AppCompatActivity() {
             }
         }
 
-
-
-        return listBoardToDataBase
+        return listBoardToDataBase.cloone()
     }
 
     private fun fromDataBaseToGame(cellBoardFromDataBase: ArrayList<CellPieceToDataBase>){
 
         var  changedCells = ArrayList<Cell?>()
 
-        for(CellPiece in cellBoardFromDataBase){
+        for(CellPiece in cellBoardFromDataBase.cloone()){
             var tmpCell: Cell
 
 
@@ -597,5 +566,16 @@ class BoardActivity : AppCompatActivity() {
         val intent = Intent(this, MenuActivity::class.java).apply{}
         intent.putExtra("playerName", playerName)
         startActivity(intent)
+    }
+
+    fun dataBoardEquals(data1: ArrayList<CellPieceToDataBase>, data2: ArrayList<CellPieceToDataBase> ): Boolean{
+        if (data2.size == 1) {
+            return true
+        } else if (data1.size == 0) {
+            return false
+        } else if(!data1[0].equals(data2[0])) {
+            return false
+        }
+        return true
     }
 }
