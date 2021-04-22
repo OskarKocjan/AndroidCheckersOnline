@@ -28,30 +28,29 @@ class BoardActivity : AppCompatActivity() {
     private lateinit var buttonResign: Button
     private lateinit var boardToDatabase: ArrayList<CellPieceToDataBase>
     private lateinit var boardFromDatabase: ArrayList<CellPieceToDataBase>
-//    private lateinit var cellArray: MutableList<DatabaseReference>
 
     private lateinit var database: FirebaseDatabase
     private lateinit var roomRef: DatabaseReference
     private lateinit var stateRef: DatabaseReference
+    private lateinit var player1RoomRef: DatabaseReference
+    private lateinit var player2RoomRef: DatabaseReference
     private lateinit var player1Ref: DatabaseReference
+    private lateinit var player2Ref: DatabaseReference
     private lateinit var valueListener: ValueEventListener
-//    private lateinit var cell1Ref: DatabaseReference
-//    private lateinit var cell2Ref: DatabaseReference
-//    private lateinit var cell3Ref: DatabaseReference
-
 
     private lateinit var roomName: String
     private lateinit var playerName: String
     private lateinit var currentPlayerName: String
     private var player1Temp: String = ""
+    private var myRank: Int = 0
 
     private lateinit var player1: Player
     private lateinit var player2: Player
     private lateinit var currentPlayer: Player
 
-    private var computerMode: Boolean = false
     private var otherPlayerTurn: Boolean = false
     private var srcCellFixed: Boolean = false
+    private var winner: Boolean = false
     private var cellBoard = Board()
     private var cellBoardCopy = Board()
 
@@ -70,18 +69,13 @@ class BoardActivity : AppCompatActivity() {
 
         roomName = intent.getStringExtra("roomName")!!
         playerName = intent.getStringExtra("playerName")!!
+        myRank = intent.getIntExtra("myRank", 0)
 
         database = FirebaseDatabase.getInstance()
         roomRef = database.getReference("rooms/$roomName")
-        player1Ref = database.getReference("rooms/$roomName/player1")
+        player1RoomRef = database.getReference("rooms/$roomName/player1")
+        player2RoomRef = database.getReference("rooms/$roomName/player2")
         stateRef = database.getReference("rooms/$roomName/state")
-//        cell1Ref = database.getReference("rooms/$roomName/state/cell1")
-//        cell2Ref = database.getReference("rooms/$roomName/state/cell2")
-//        cell3Ref = database.getReference("rooms/$roomName/state/cell3")
-//        cellArray = MutableList(3)
-//        cellArray.add(cell1Ref)
-//        cellArray.add(cell2Ref)
-//        cellArray.add(cell3Ref)
 
         cellBoard.initialBoardSetup()
         srcCell = null
@@ -116,20 +110,10 @@ class BoardActivity : AppCompatActivity() {
         }
 
 
-
-
-
         updateBoard(buttonBoard, cellBoard)
         moves = ArrayList()
 
-
         cellBoardCopy = cellBoard.cloone()
-
-
-        if(cellBoardCopy.changes == cellBoard.changes){
-            println("Jasiuuuuuuuuuuuuuuuuuu")
-        }
-
 
         chooseColorDialog()
         currentPlayerName = player1Temp
@@ -140,25 +124,42 @@ class BoardActivity : AppCompatActivity() {
         }
     }
 
-    /*
-     * Creates dialog menu to let player 1 pick their color
-     */
+
     fun chooseColorDialog() {
 
         player1 = Player(Piece.LIGHT)
         player2 = Player(Piece.DARK)
         currentPlayer = player2
-        valueListener = player1Ref.addValueEventListener(object: ValueEventListener{
+        valueListener = player1RoomRef.addValueEventListener(object: ValueEventListener{
             override fun onDataChange(snapshot: DataSnapshot) {
                 if (snapshot.value == null){
+                    if (!winner){
+                        if (!player1.hasMoves(cellBoard)) {
+                            Toast.makeText(applicationContext, "Player 2 Wins!", Toast.LENGTH_LONG).show()
+                            if(currentPlayer == player1){
+                                player1Ref.setValue(myRank-10)
+                            } else {
+                                player2Ref.setValue(myRank+10)
+                            }
+                        } else {
+                            Toast.makeText(applicationContext, "Player 1 Wins!", Toast.LENGTH_LONG).show()
+                            if(currentPlayer == player1){
+                                player1Ref.setValue(myRank+10)
+                            } else {
+                                player2Ref.setValue(myRank-10)
+                            }
+                        }
+                    }
                     goToPreviousActivity()
                 } else {
                     player1Temp = snapshot.value.toString()
                     if(player1Temp == playerName){
                         currentPlayer = player1
+                        player1Ref = database.getReference("players/$playerName/rank")
                         updateTurnTracker()
                     } else {
                         currentPlayer = player2
+                        player2Ref = database.getReference("players/$playerName/rank")
                         changeTurn(false)
                     }
                 }
@@ -198,18 +199,13 @@ class BoardActivity : AppCompatActivity() {
 
     fun playerTurn(xCord: Int, yCord: Int) {
 
-
-
-        // If both players have pieces, game IS RUNNING
         if (player1.hasMoves(cellBoard) && player1.hasMoves(cellBoard)) {
-
-            // If piece exists AND color of piece matches players piece AND counter == 0, let the player take a turn
             if (cellBoard.getCell(xCord, yCord)!!.containsPiece() && cellBoard.getCell(xCord, yCord)!!.placedPiece?.color.equals(currentPlayer.color) && srcCell == null) {
-                unHighlightPieces() // unhighlight other pieces if user clicks a source cell
+                unHighlightPieces()
                 srcCell = cellBoard.getCell(xCord, yCord)!!
                 moves = cellBoard.possibleMoves(srcCell)
 
-                //If the user taps the cell with no moves then show the message stating that
+
                 if (moves.isEmpty()) {
                     Toast.makeText(applicationContext, "No possible moves!", Toast.LENGTH_SHORT).show()
                     srcCell = null
@@ -221,7 +217,7 @@ class BoardActivity : AppCompatActivity() {
                 }
             } else if (srcCell != null && srcCell == cellBoard.getCell(xCord, yCord) && !srcCellFixed) {
                 srcCell = null
-                updatePieces(xCord, yCord) // updates the graphical pieces
+                updatePieces(xCord, yCord)
                 updateTurnTracker()
             } else if (!cellBoard.getCell(xCord, yCord)!!.containsPiece() && moves.contains(cellBoard.getCell(xCord, yCord)) && srcCell != null) {
                 dstCell = cellBoard.getCell(xCord, yCord)!!
@@ -229,10 +225,11 @@ class BoardActivity : AppCompatActivity() {
             }
         }
 
-        // If player who is light runs out of pieces, they lose
         if (!player1.hasMoves(cellBoard) && player2.hasMoves(cellBoard) ||
                 player1.hasMoves(cellBoard) && !player2.hasMoves(cellBoard)) {
-            gameOverDialog()
+                    if(!winner){
+                        gameOverDialog()
+                    }
         } else if (!player1.hasMoves(cellBoard) && !player2.hasMoves(cellBoard)) {
             Toast.makeText(applicationContext, "DRAW, NO WINNERS!", Toast.LENGTH_LONG).show()
         }
@@ -261,10 +258,6 @@ class BoardActivity : AppCompatActivity() {
 
 
     fun updateTurnTracker() {
-        // Get all the pieces of the current player that can move & highlight them
-
-
-
         val currentPlayerPieces = cellBoard.getPieces(currentPlayer.color!!)
         var moves: ArrayList<Cell?>
         for (piece in currentPlayerPieces) {
@@ -282,9 +275,6 @@ class BoardActivity : AppCompatActivity() {
                 highlightedCells.add(piece.placedCell!!)
             }
         }
-
-
-
     }
 
 
@@ -296,61 +286,63 @@ class BoardActivity : AppCompatActivity() {
 
 
     fun updatePiecePressed(givenCell: Cell) {
-        // If current player is light AND the piece selected is a light piece, player can ONLY move light pieces and can jump ONLY dark pieces
         if (currentPlayer.color.equals(Piece.LIGHT) && givenCell.piece!!.color == Piece.LIGHT) {
 
-            // If light AND king
             if (givenCell.piece!!.isKing) {
                 buttonBoard[givenCell.x][givenCell.y]!!.setBackgroundResource(R.drawable.light_king_piece_pressed)
             } else {
-                buttonBoard[givenCell.x][givenCell.y]!!.setBackgroundResource(R.drawable.light_piece_pressed) // fill selected light piece as pressed piece image
+                buttonBoard[givenCell.x][givenCell.y]!!.setBackgroundResource(R.drawable.light_piece_pressed)
             }
         }
-        // If current player is dark AND the piece selected is a dark piece, player can ONLY move dark pieces and can jump ONLY light pieces
         if (currentPlayer.color.equals(Piece.DARK) && givenCell.piece!!.color == Piece.DARK) {
 
-            // If dark AND king
             if (cellBoard.getCell(givenCell.x, givenCell.y)!!.placedPiece!!.isKing) {
                 buttonBoard[givenCell.x][givenCell.y]!!.setBackgroundResource(R.drawable.dark_king_piece_pressed)
             } else {
-                buttonBoard[givenCell.x][givenCell.y]!!.setBackgroundResource(R.drawable.dark_piece_pressed) // fill selected dark piece as pressed piece image
+                buttonBoard[givenCell.x][givenCell.y]!!.setBackgroundResource(R.drawable.dark_piece_pressed)
             }
         }
     }
 
     fun gameOverDialog() {
         updateTurnTracker()
-        val winner: String
-        winner = if (!player1.hasMoves(cellBoard)) {
-            "Player 2"
+        winner = true
+        if (!player1.hasMoves(cellBoard)) {
+            Toast.makeText(applicationContext, "Player 2 Wins!", Toast.LENGTH_LONG).show()
+            if(currentPlayer == player1){
+                player1Ref.setValue(myRank-10)
+            } else {
+                player2Ref.setValue(myRank+10)
+            }
+            roomRef.removeValue()
         } else {
-            "Player 1"
+            Toast.makeText(applicationContext, "Player 1 Wins!", Toast.LENGTH_LONG).show()
+            if(currentPlayer == player1){
+                player1Ref.setValue(myRank+10)
+            } else {
+                player2Ref.setValue(myRank-10)
+            }
+            roomRef.removeValue()
         }
-        TODO()
-
     }
 
 
     fun updatePieces(xCord: Int, yCord: Int) {
-
-
-        // For all of the possible moves colored in on the cellBoard, after a piece moves we want to remove them
         var possMoves: Cell
         for (i in moves.indices) {
             possMoves = moves[i]!!
-            buttonBoard[possMoves.x][possMoves.y]!!.setBackgroundResource(R.drawable.blank_square) // color possible moves blank
+            buttonBoard[possMoves.x][possMoves.y]!!.setBackgroundResource(R.drawable.blank_square)
         }
 
-        // If the piece is light
         if (cellBoard.getCell(xCord, yCord)!!.placedPiece!!.color.equals(Piece.LIGHT) && cellBoard.getCell(xCord, yCord)!!.containsPiece()) {
-            // If piece is light AND is king
+
             if (cellBoard.getCell(xCord, yCord)!!.placedPiece!!.isKing) {
                 buttonBoard[xCord][yCord]!!.setBackgroundResource(R.drawable.light_king_piece)
             } else {
                 buttonBoard[xCord][yCord]!!.setBackgroundResource(R.drawable.light_piece)
             }
         } else {
-            // // If piece is dark AND is king
+
             if (cellBoard.getCell(xCord, yCord)!!.placedPiece!!.isKing) {
                 buttonBoard[xCord][yCord]!!.setBackgroundResource(R.drawable.dark_king_piece)
             } else {
@@ -359,17 +351,8 @@ class BoardActivity : AppCompatActivity() {
         }
     }
 
-    /*
-     * When a piece jumps an opponent piece, we want to remove the piece jumped and update new piece graphic at its destination
-     * @param int xCordSrc - The x-coordinate of a piece that will jump opponent piece
-     * @param int yCordSrc - The y-coordinate of a piece that will jump opponent piece
-     * @param int xCordDst - The new x-coordinate of a piece after it jumped an opponent piece
-     * @param int yCordDst - The new y-coordinate of a piece after it jumped an opponent piece
-     * @param Cell pieceCaptured - The piece that was captured
-     */
     fun updatePieces(changedCells: ArrayList<Cell?>, variant: Int = 0) {
 
-        // For all of the possible moves colored in on the cellBoard, after a piece jumps we want to remove them
         var possMoves: Cell
         if(variant == 0) {
             for (i in moves.indices) {
@@ -401,12 +384,11 @@ class BoardActivity : AppCompatActivity() {
 
         unHighlightPieces()
         val captureMove = cellBoard.isCaptureMove(givenSrcCell, givenDstCell)
-        val changedCells = cellBoard.movePiece(givenSrcCell.coords, givenDstCell.coords)!! // moves piece, store captured piece into array list
+        val changedCells = cellBoard.movePiece(givenSrcCell.coords, givenDstCell.coords)!!
         updatePieces(changedCells)
         if (captureMove) {
-            moves = cellBoard.getCaptureMoves(givenDstCell) // stores the future capture moves of the cell
+            moves = cellBoard.getCaptureMoves(givenDstCell)
 
-            // If the piece that captured opponents piece has no capture moves, end turn
             if (moves.isEmpty()) {
                 srcCell = null
                 dstCell = null
@@ -418,9 +400,6 @@ class BoardActivity : AppCompatActivity() {
                 srcCellFixed = true
                 updatePiecePressed(srcCell!!)
                 showPossibleMoves(moves)
-
-                //If current player is computer
-
             }
         } else {
             srcCell = null
@@ -460,14 +439,14 @@ class BoardActivity : AppCompatActivity() {
                             otherPlayerTurn = false
                             updateTurnTracker()
                         } else {
-                            gameOverDialog()
+                            if(!winner){
+                                gameOverDialog()
+                            }
                         }
                     }
                 }
             }
-            override fun onCancelled(error: DatabaseError) {
-                TODO("Not yet implemented")
-            }
+            override fun onCancelled(error: DatabaseError) {}
         })
     }
 
@@ -521,20 +500,12 @@ class BoardActivity : AppCompatActivity() {
                 cellBoard.removePiece(cellBoard.board[tmpCell.x][tmpCell.y].placedPiece)
 
             }
-
-
             changedCells.add(tmpCell)
             cellBoard.board[tmpCell.x][tmpCell.y] = tmpCell
 
         }
-
         updatePieces(changedCells, 1)
-
-
     }
-
-
-
 
     fun updateBoard(buttonIndexes: Array<Array<Button?>>, board: Board) {
         for (i in 0..7) {

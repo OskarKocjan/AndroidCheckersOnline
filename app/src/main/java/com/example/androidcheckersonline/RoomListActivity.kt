@@ -16,10 +16,10 @@ class RoomListActivity : AppCompatActivity() {
     private lateinit var database: FirebaseDatabase
     private lateinit var roomRef: DatabaseReference
     private lateinit var roomsRef: DatabaseReference
-    private lateinit var stateRef: DatabaseReference
 
     private lateinit var playerName: String
     private lateinit var roomName: String
+    private var myRank: Int = 0
     private lateinit var roomsList: MutableList<String>
 
 
@@ -30,6 +30,7 @@ class RoomListActivity : AppCompatActivity() {
         buttonCreateRoom = findViewById(R.id.buttonCreateRoom)
 
         playerName = intent.getStringExtra("playerName")!!
+        myRank = intent.getIntExtra("myRank", 0)
         roomName = playerName
 
         database = FirebaseDatabase.getInstance()
@@ -89,6 +90,7 @@ class RoomListActivity : AppCompatActivity() {
         val intent = Intent(this, BoardActivity::class.java).apply{}
         intent.putExtra("roomName", roomName)
         intent.putExtra("playerName", playerName)
+        intent.putExtra("myRank", myRank)
         startActivity(intent)
     }
 
