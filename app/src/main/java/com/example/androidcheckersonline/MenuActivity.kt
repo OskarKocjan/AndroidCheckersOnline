@@ -16,6 +16,8 @@ class MenuActivity : AppCompatActivity() {
 
     private lateinit var playerRef: DatabaseReference
 
+    private lateinit var playerData: PlayerData
+
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -31,7 +33,7 @@ class MenuActivity : AppCompatActivity() {
         playerRef = database.getReference("players/$playerName")
         playerRef.addValueEventListener(object : ValueEventListener {
             override fun onDataChange(snapshot: DataSnapshot) {
-                val playerData = snapshot.getValue(PlayerData::class.java)
+                playerData = snapshot.getValue(PlayerData::class.java)!!
                 textViewPlayerRank.text = playerData!!.rank.toString()
             }
 
@@ -49,6 +51,7 @@ class MenuActivity : AppCompatActivity() {
 
         roomListButton.setOnClickListener{
             val intent = Intent(this, RoomListActivity::class.java).apply{}
+            intent.putExtra("myRank", playerData.rank)
             intent.putExtra("playerName", playerName)
             startActivity(intent)
         }
