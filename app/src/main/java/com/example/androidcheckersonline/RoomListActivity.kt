@@ -16,6 +16,7 @@ class RoomListActivity : AppCompatActivity() {
     private lateinit var database: FirebaseDatabase
     private lateinit var roomRef: DatabaseReference
     private lateinit var roomsRef: DatabaseReference
+    private lateinit var stateRef: DatabaseReference
 
     private lateinit var playerName: String
     private lateinit var roomName: String
